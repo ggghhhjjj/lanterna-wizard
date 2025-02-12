@@ -16,27 +16,22 @@ class Main {
         WizardScreen firstScreen
         WizardScreen secondScreen
 
-        // Create the welcome WizardScreen without a QuestionZone (pass null).
+        // Create the welcome WizardScreen without a QuestionZone.
         welcomeScreen = new WizardScreen(screen, "Welcome",
                 new DescriptionZone("Welcome to the Wizard!\nPress Next to continue."),
                 null,
-                new WizardButtonsZone(true,
-                false,
-                { -> firstScreen.show() }, {}))
+                new WizardButtonsZone({ -> firstScreen.show() }))
 
         firstScreen = new WizardScreen(screen, "Step 1",
                 new DescriptionZone("Welcome to the wizard! This is step 1."),
                 new QuestionZone("name", "What is your name?", "John Doe"),  // Unique key
-                new WizardButtonsZone(true, true,
-                { -> secondScreen.show() }, { -> welcomeScreen.show()}))
+                new WizardButtonsZone({ -> secondScreen.show() }, { -> welcomeScreen.show() }))
 
         secondScreen = new WizardScreen(screen, "Step 2",
                 new DescriptionZone("This is step 2. Almost done!"),
                 new QuestionZone("color", "What is your favorite color?", "Blue"),  // Unique key
-                new WizardButtonsZone(false, true,
-                { -> println("Wizard completed!") }, {
-                    -> firstScreen.show()
-                }))
+                // missing onNext will display Finish button
+                new WizardButtonsZone(null, { -> firstScreen.show()}))
 
         welcomeScreen.show()
     }

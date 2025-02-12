@@ -4,16 +4,18 @@ import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.screen.Screen
 
 class WizardButtonsZone {
-    private final boolean hasNext
-    private final boolean hasPrev
+    private static final Closure EMPTY_CLOSURE = {}
+
     private final Closure onNext
     private final Closure onBack
+    private final boolean hasNext
+    private final boolean hasPrev
 
-    WizardButtonsZone(boolean hasNext, boolean hasPrev, Closure onNext, Closure onBack) {
-        this.hasNext = hasNext
-        this.hasPrev = hasPrev
-        this.onNext = onNext
-        this.onBack = onBack
+    WizardButtonsZone(Closure onNext = EMPTY_CLOSURE, Closure onBack = EMPTY_CLOSURE) {
+        this.onNext = onNext ?: EMPTY_CLOSURE // Ensure it's not null
+        this.onBack = onBack ?: EMPTY_CLOSURE  // Ensure it's not null
+        this.hasNext = !isEmptyClosure(this.onNext)
+        this.hasPrev = !isEmptyClosure(this.onBack)
     }
 
     Component build(WindowBasedTextGUI gui, WizardScreen currentScreen) {
@@ -60,5 +62,9 @@ class WizardButtonsZone {
         panel.addComponent(nextFinishButton)
 
         return panel
+    }
+
+    private static boolean isEmptyClosure(Closure closure) {
+        return closure == null || closure.is(EMPTY_CLOSURE)  // Check if closure is empty
     }
 }
