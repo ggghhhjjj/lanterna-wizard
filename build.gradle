@@ -4,7 +4,22 @@ plugins {
 }
 
 repositories {
-    mavenCentral()
+    // Retrieve Maven repository URL from gradle.properties (if defined)
+    def repoUrlPropertyProvider = providers.gradleProperty("mavenRepositoryUrl")
+    def defaultMavenUrl = "https://repo.maven.apache.org/maven2"
+
+    /*
+     * If your development environment restricts public repositories, define your custom repository URL
+     * in the 'gradle.properties' file located in the project root.
+     *
+     * Example:
+     *     mavenRepositoryUrl=https://your.internal.repo/url
+     *
+     * Gradle will use the provided repository URL if set, otherwise, it falls back to Maven Central.
+     */
+    maven {
+        url repoUrlPropertyProvider.isPresent() ? repoUrlPropertyProvider.get() : defaultMavenUrl
+    }
 }
 
 dependencies {
@@ -15,4 +30,33 @@ dependencies {
 application {
     // Fully-qualified main class name
     mainClass = 'george.Main'
+}
+
+tasks.named('help') {
+    doLast {
+        println """
+        ==========================
+        Lanterna Wizard - Build Help
+        ==========================
+        
+        This project uses Gradle for dependency management.
+
+        === Custom Maven Repository Configuration ===
+        If your development environment does not allow public repositories, 
+        you must define a custom Maven repository in the 'gradle.properties' file.
+
+        Example:
+        
+            mavenRepositoryUrl=https://your.internal.repo/url
+        
+        Gradle will use this custom repository if configured. Otherwise, it defaults to Maven Central.
+        
+        === Useful Gradle Commands ===
+        - Build the project:     ./gradlew build
+        - Run the application:   ./gradlew run
+        - Clean the project:     ./gradlew clean
+        - Show dependencies:     ./gradlew dependencies
+        
+        """
+    }
 }

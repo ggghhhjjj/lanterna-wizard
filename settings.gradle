@@ -1,1 +1,10 @@
+pluginManagement {
+    def repoUrlPropertyProvider = providers.gradleProperty("mavenRepositoryUrl")
+    def defaultMavenUrl = "https://repo.maven.apache.org/maven2"
+
+    repositories {
+        maven { url repoUrlPropertyProvider.isPresent() ? repoUrlPropertyProvider.get() : defaultMavenUrl }
+    }
+}
+
 rootProject.name = 'lanterna-wizard'
