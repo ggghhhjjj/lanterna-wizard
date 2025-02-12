@@ -1,6 +1,7 @@
 package george.tui.wizard
 
 import com.googlecode.lanterna.gui2.*
+import com.googlecode.lanterna.screen.Screen
 
 class WizardButtonsZone {
     private final boolean hasNext
@@ -23,8 +24,9 @@ class WizardButtonsZone {
 
         // Exit Button
         Button exitButton = new Button("Exit", {
-            gui.getActiveWindow().close()  // Close the active window
-            gui.getWindows().forEach { it.close() } // Close all windows
+            Screen screen = gui.getScreen() // Get the screen from GUI
+            screen.clear()  // Clear the screen
+            screen.refresh() // Apply changes
             System.exit(0)
         })
         panel.addComponent(exitButton)
