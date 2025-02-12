@@ -1,4 +1,5 @@
 plugins {
+    id 'com.diffplug.spotless' version '7.0.2'
     id 'groovy'
     id 'application'
 }
@@ -23,8 +24,8 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.codehaus.groovy:groovy-all:3.0.9'
-    implementation 'com.googlecode.lanterna:lanterna:3.1.1'
+    implementation 'org.apache.groovy:groovy:4.0.23'
+    implementation 'com.googlecode.lanterna:lanterna:3.1.2'
 }
 
 application {
@@ -39,6 +40,14 @@ tasks.startScripts {
         if (windowsScriptFile.exists()) {
             windowsScriptFile.text = windowsScriptFile.text.replace('java.exe', 'javaw.exe')
         }
+    }
+}
+
+spotless {
+    groovy {
+        target 'src/main/groovy/**/*.groovy'
+        greclipse() // Uses Groovy-Eclipse formatter
+        leadingTabsToSpaces(4)
     }
 }
 
