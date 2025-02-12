@@ -1,6 +1,5 @@
 package george.tui.wizard
 
-import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.*
 
 class WizardButtonsZone {
@@ -18,10 +17,14 @@ class WizardButtonsZone {
 
     Component build(WindowBasedTextGUI gui, WizardScreen currentScreen) {
         Panel panel = new Panel(new GridLayout(3))
-        panel.setPreferredSize(new TerminalSize(40, 3))
+
+        GridLayout gridLayout = (GridLayout) panel.getLayoutManager()
+        gridLayout.setTopMarginSize(1)
 
         // Exit Button
         Button exitButton = new Button("Exit", {
+            gui.getActiveWindow().close()  // Close the active window
+            gui.getWindows().forEach { it.close() } // Close all windows
             System.exit(0)
         })
         panel.addComponent(exitButton)
@@ -47,6 +50,8 @@ class WizardButtonsZone {
         } else {
             nextFinishButton = new Button("Finish", {
                 currentScreen.saveData()
+                gui.getActiveWindow().close()  // Close the active window
+                gui.getWindows().forEach { it.close() } // Close all windows
                 System.exit(0)
             })
         }

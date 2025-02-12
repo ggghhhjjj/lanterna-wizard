@@ -17,13 +17,11 @@ class DescriptionZone {
 
     Component build() {
         Panel panel = new Panel(new LinearLayout(Direction.VERTICAL))
-        // Approximately top 2/3 of an 18-row screen (e.g. 12 rows):
-        panel.setPreferredSize(new TerminalSize(40, 12))
-        panel.setFillColorOverride(TextColor.ANSI.MAGENTA)  // Updated line
-        panel.withBorder(Borders.singleLine(" Description "))
+        panel.setFillColorOverride(TextColor.ANSI.CYAN)  // Updated line
 
         Label label = new Label(text)
         label.setForegroundColor(TextColor.ANSI.BLACK)
+        label.setBackgroundColor(TextColor.ANSI.CYAN)
         panel.addComponent(label)
 
         return panel

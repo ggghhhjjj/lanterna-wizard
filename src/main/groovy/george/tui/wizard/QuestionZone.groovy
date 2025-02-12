@@ -1,12 +1,11 @@
 package george.tui.wizard
 
-import com.googlecode.lanterna.TerminalSize
+import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.*
 
 /**
  * Displays a question with an input field.
- * The question text is shown above the input TextBox.
- */
+ * The question text is shown above the input TextBox.*/
 class QuestionZone {
     private final String question
     private final String key
@@ -14,36 +13,42 @@ class QuestionZone {
 
     /**
      * Constructor initializes the question and text field.
-     * It retrieves the stored value from Repository or sets a default.
-     */
+     * It retrieves the stored value from Repository or sets a default.*/
     QuestionZone(String key, String question, String defaultAnswer = "") {
         this.key = key
         this.question = question
-        String initialValue = Repository.get(key, defaultAnswer)  // Fetch stored value
-        this.inputField = new TextBox(new TerminalSize(30, 1), initialValue)
+        def initialValue = Repository.get(key, defaultAnswer)  // Fetch stored value
+        this.inputField = new PasteableTextBox(initialValue)
     }
 
     /**
-     * Builds the UI component.
-     */
+     * Builds the UI component.*/
     Component build() {
-        Panel panel = new Panel(new LinearLayout(Direction.VERTICAL))
-        panel.setPreferredSize(new TerminalSize(40, 3))
-        panel.addComponent(new Label(question))
-        panel.addComponent(inputField)
+        def panel = new Panel(new GridLayout(1))
+        def gridLayout = (GridLayout) panel.getLayoutManager()
+        gridLayout.setTopMarginSize(1)
+
+        def label = new Label(question)
+        label.setForegroundColor(TextColor.ANSI.RED)
+        panel.addComponent(label, GridLayout.createHorizontallyFilledLayoutData())
+
+        panel.addComponent(new EmptySpace())
+
+        panel.addComponent(inputField, GridLayout.createHorizontallyFilledLayoutData())
+
+        panel.addComponent(new Label('(ctr+c to paste if supported)'))
+
         return panel
     }
 
     /**
-     * Saves user input to the repository.
-     */
+     * Saves user input to the repository.*/
     void saveAnswer() {
         Repository.set(key, inputField.getText())
     }
 
     /**
-     * Gets the current input value.
-     */
+     * Gets the current input value.*/
     String getAnswer() {
         return inputField.getText()
     }
