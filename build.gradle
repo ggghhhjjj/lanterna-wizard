@@ -32,6 +32,16 @@ application {
     mainClass = 'george.Main'
 }
 
+tasks.startScripts {
+    // workaround for https://github.com/mabe02/lanterna/issues/593
+    doLast {
+        def windowsScriptFile = layout.buildDirectory.file("scripts/${applicationName}.bat").get().asFile
+        if (windowsScriptFile.exists()) {
+            windowsScriptFile.text = windowsScriptFile.text.replace('java.exe', 'javaw.exe')
+        }
+    }
+}
+
 tasks.named('help') {
     doLast {
         println """
