@@ -9,24 +9,41 @@ import com.googlecode.lanterna.gui2.*
  */
 class QuestionZone {
     private final String question
-    private final String defaultAnswer
+    private final String key
     private final TextBox inputField
 
-    QuestionZone(String question, String defaultAnswer = "") {
+    /**
+     * Constructor initializes the question and text field.
+     * It retrieves the stored value from Repository or sets a default.
+     */
+    QuestionZone(String key, String question, String defaultAnswer = "") {
+        this.key = key
         this.question = question
-        this.defaultAnswer = defaultAnswer
-        this.inputField = new TextBox(new TerminalSize(30, 1), defaultAnswer)
+        String initialValue = Repository.get(key, defaultAnswer)  // Fetch stored value
+        this.inputField = new TextBox(new TerminalSize(30, 1), initialValue)
     }
 
+    /**
+     * Builds the UI component.
+     */
     Component build() {
         Panel panel = new Panel(new LinearLayout(Direction.VERTICAL))
-        // Approximately 1/6 of the screen height (e.g., 3 rows):
         panel.setPreferredSize(new TerminalSize(40, 3))
         panel.addComponent(new Label(question))
         panel.addComponent(inputField)
         return panel
     }
 
+    /**
+     * Saves user input to the repository.
+     */
+    void saveAnswer() {
+        Repository.set(key, inputField.getText())
+    }
+
+    /**
+     * Gets the current input value.
+     */
     String getAnswer() {
         return inputField.getText()
     }
