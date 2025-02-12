@@ -1,23 +1,28 @@
 package george.tui.wizard
 
-import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.screen.Screen
 import com.googlecode.lanterna.TextColor
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory
-import com.googlecode.lanterna.terminal.Terminal
 
 class WizardScreen {
     private final WindowBasedTextGUI gui
     private final Window window
     private final QuestionZone questionZone
-    private final Closure onNextCallback  // Callback function (String key -> void)
 
-    WizardScreen(Screen screen, String title, DescriptionZone description, QuestionZone question, WizardButtonsZone buttons, Closure onNextCallback = { key -> }) {
+    /**
+     * Constructor for WizardScreen.
+     *
+     * @param screen the Lanterna screen
+     * @param title the window title
+     * @param description the DescriptionZone component
+     * @param questionZone the QuestionZone component (can be null if not needed)
+     * @param buttons the WizardButtonsZone component
+     * @param onNextCallback callback to invoke when Next is pressed
+     */
+    WizardScreen(Screen screen, String title, DescriptionZone description, QuestionZone question, WizardButtonsZone buttons) {
         this.gui = new MultiWindowTextGUI(screen)
         this.window = new BasicWindow(title)
         this.questionZone = question
-        this.onNextCallback = onNextCallback
 
         window.setHints([Window.Hint.EXPANDED] as Set)
 
@@ -28,9 +33,12 @@ class WizardScreen {
         descriptionComponent.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Fill, LinearLayout.GrowPolicy.CanGrow))
         panel.addComponent(descriptionComponent)
 
-        Component questionComponent = question.build()
-        questionComponent.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Fill, LinearLayout.GrowPolicy.None))
-        panel.addComponent(questionComponent)
+        // Conditionally add QuestionZone if provided
+        if (questionZone != null) {
+            Component questionComponent = questionZone.build()
+            questionComponent.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Fill, LinearLayout.GrowPolicy.None))
+            panel.addComponent(questionComponent)
+        }
 
         Component buttonsComponent = buttons.build(gui, this)
         buttonsComponent.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Fill, LinearLayout.GrowPolicy.None))
@@ -48,7 +56,8 @@ class WizardScreen {
     }
 
     void saveData() {
-        questionZone.saveAnswer()  // Save input to repository
-        onNextCallback.call(questionZone.key)  // Execute the callback function
+        if (questionZone != null) {
+            questionZone.saveAnswer()  // Save input to repository
+        }
     }
 }
