@@ -1,9 +1,12 @@
 pluginManagement {
     def repoUrlPropertyProvider = providers.gradleProperty("mavenRepositoryUrl")
-    def defaultMavenUrl = "https://repo.maven.apache.org/maven2"
 
     repositories {
-        maven { url repoUrlPropertyProvider.isPresent() ? repoUrlPropertyProvider.get() : defaultMavenUrl }
+        if (repoUrlPropertyProvider.isPresent()) {
+            maven { url repoUrlPropertyProvider.get() }
+        } else {
+            gradlePluginPortal() // Use Gradle Plugin Portal when no custom repository is provided
+        }
     }
 }
 
