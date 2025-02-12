@@ -1,4 +1,4 @@
-package george
+package george.tui.wizard
 
 import java.util.concurrent.ConcurrentHashMap
 

@@ -1,8 +1,7 @@
-package george
+package george.tui.wizard
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.*
-import com.googlecode.lanterna.TextColor
 
 class WizardButtonsZone {
     private final boolean hasNext
@@ -30,7 +29,7 @@ class WizardButtonsZone {
         // Back Button (if applicable)
         if (hasPrev) {
             Button backButton = new Button("Back", {
-                currentScreen.saveData()  // Save data before navigating
+                currentScreen.saveData()
                 onBack.call()
             })
             panel.addComponent(backButton)
@@ -42,7 +41,7 @@ class WizardButtonsZone {
         Button nextFinishButton
         if (hasNext) {
             nextFinishButton = new Button("Next", {
-                currentScreen.saveData()  // Save data before navigating
+                currentScreen.saveData()
                 onNext.call()
             })
         } else {

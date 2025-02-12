@@ -2,6 +2,10 @@ package george
 
 import com.googlecode.lanterna.screen.Screen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
+import george.tui.wizard.DescriptionZone
+import george.tui.wizard.QuestionZone
+import george.tui.wizard.WizardButtonsZone
+import george.tui.wizard.WizardScreen
 
 class Main {
     static void main(String[] args) {
@@ -19,7 +23,8 @@ class Main {
                         true, false,
                         { -> secondScreen.show() },
                         { }
-                )
+                ),
+                { key -> println("Next pressed, Question Key: $key") }  // Custom callback
         )
 
         secondScreen = new WizardScreen(
@@ -30,7 +35,8 @@ class Main {
                         false, true,
                         { -> println("Wizard completed!"); System.exit(0) },
                         { -> firstScreen.show() }
-                )
+                ),
+                { key -> println("Finish pressed, Question Key: $key") }  // Custom callback
         )
 
         firstScreen.show()

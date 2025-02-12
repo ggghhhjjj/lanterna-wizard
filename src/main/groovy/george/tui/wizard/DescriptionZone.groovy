@@ -1,4 +1,4 @@
-package george
+package george.tui.wizard
 
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.*
