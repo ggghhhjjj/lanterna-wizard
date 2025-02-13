@@ -4,26 +4,25 @@ import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.screen.Screen
 
-class WizardScreen {
+class WizardWindow {
     static final Closure NO_NAVIGATION = {}
 
     private final WindowBasedTextGUI gui
     private final Window window
     private Description descriptionZone
     private Question questionZone
-    private final WizardButtonsZone buttonsZone
+    private final Navigation buttonsZone
     private final Panel mainPanel
 
     private static final int DESCRIPTION_INDEX = 0
     private static final int QUESTION_INDEX = 1
-    private static final int BUTTONS_INDEX = 2
 
-    WizardScreen(String title, Screen screen) {
+    WizardWindow(String title, Screen screen) {
         this.gui = new MultiWindowTextGUI(screen)
         this.window = new BasicWindow(title)
         this.descriptionZone = new Description("") // Default empty description
         this.questionZone = null // Default null
-        this.buttonsZone = new WizardButtonsZone(gui, this)
+        this.buttonsZone = new Navigation(gui, this)
 
         window.setHints([Window.Hint.EXPANDED] as Set)
 
@@ -50,7 +49,7 @@ class WizardScreen {
     }
 
     /** Replaces the DescriptionZone and refreshes the UI */
-    WizardScreen setDescription(String text) {
+    WizardWindow setDescription(String text) {
         def newDescription = new Description(text)
         mainPanel.removeComponent(mainPanel.children[DESCRIPTION_INDEX])
 
@@ -64,7 +63,7 @@ class WizardScreen {
     }
 
     /** Replaces the QuestionZone and refreshes the UI */
-    WizardScreen setQuestionZone(Question newQuestionZone) {
+    WizardWindow setQuestionZone(Question newQuestionZone) {
         mainPanel.removeComponent(mainPanel.children[QUESTION_INDEX])
 
         this.questionZone = newQuestionZone
@@ -77,7 +76,7 @@ class WizardScreen {
     }
 
     /** Updates the navigation buttons */
-    WizardScreen setNavigation(Closure onBack, Closure onNext = NO_NAVIGATION) {
+    WizardWindow setNavigation(Closure onBack, Closure onNext = NO_NAVIGATION) {
         buttonsZone.setNavigation(onBack, onNext)
         gui.updateScreen()
         return this
@@ -103,63 +102,5 @@ class WizardScreen {
 
     private void saveData() {
         if (questionZone != null) questionZone.saveAnswer()
-    }
-
-    /**
-     * Private inner class for managing wizard navigation buttons.
-     */
-    private static class WizardButtonsZone {
-        private static final int BACK_BUTTON_NDX = 1
-        private static final int NEXT_BUTTON_NDX = 2
-        private static final Closure EMPTY_CLOSURE = {}
-
-        private final WindowBasedTextGUI gui
-        private final WizardScreen currentScreen
-        private Closure onNext = EMPTY_CLOSURE
-        private Closure onBack = EMPTY_CLOSURE
-        private Panel panel
-
-        WizardButtonsZone(WindowBasedTextGUI gui, WizardScreen currentScreen) {
-            this.gui = gui
-            this.currentScreen = currentScreen
-        }
-
-        Component build() {
-            panel = new Panel(new GridLayout(3))
-                    .addComponent(new Button("Exit", { exitApplication() }))
-                    .addComponent(new EmptySpace()) // Placeholder for Back button
-                    .addComponent(new Button("Finish", { exitApplication() }))
-
-            return panel
-        }
-
-        private void exitApplication() {
-            gui.getScreen().clear()
-            gui.getScreen().refresh()
-            System.exit(0)
-        }
-
-        void setNavigation(Closure onBack, Closure onNext = NO_NAVIGATION) {
-            this.onBack = onBack ?: NO_NAVIGATION
-            this.onNext = onNext ?: NO_NAVIGATION
-
-            if (onBack != NO_NAVIGATION) {
-                updateButton(BACK_BUTTON_NDX, onBack, "Back")
-            }
-
-            if (onNext != NO_NAVIGATION) {
-                updateButton(NEXT_BUTTON_NDX, onNext, "Next")
-            }
-
-            gui.updateScreen()
-        }
-
-        private void updateButton(int index, Closure action, String label) {
-            panel.removeComponent(panel.children[index])
-            panel.addComponent(index, new Button(label, {
-                currentScreen.saveData()
-                action.call()
-            }))
-        }
     }
 }
