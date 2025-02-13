@@ -9,17 +9,17 @@ import java.util.regex.Pattern
  * Displays a description in the top zone.
  * Supports dynamic placeholder replacement with Repository values.
  */
-class DescriptionZone {
+class Description {
     private String text
     private final Set<String> usedVariables = new HashSet<>()
     private Label label
 
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile('\\$\\{([a-zA-Z0-9_.]+)}')
 
-    DescriptionZone(String text) {
+    Description(String text) {
         this.text = text
         extractUsedVariables()
-        Repository.addListener(this::onRepositoryUpdate) // Subscribe to repository updates
+        Repository.addListener(this.&onRepositoryUpdate) // Subscribe to repository updates
     }
 
     Component build() {

@@ -6,7 +6,7 @@ import com.googlecode.lanterna.gui2.*
 /**
  * Displays a question with an input field.
  * The question text is shown above the input TextBox.*/
-class QuestionZone {
+class Question {
     private final String question
     private final String key
     private final TextBox inputField
@@ -14,7 +14,7 @@ class QuestionZone {
     /**
      * Constructor initializes the question and text field.
      * It retrieves the stored value from Repository or sets a default.*/
-    QuestionZone(String key, String question, String defaultAnswer = "") {
+    Question(String key, String question, String defaultAnswer = "") {
         this.key = key
         this.question = question
         def initialValue = Repository.get(key, defaultAnswer)  // Fetch stored value

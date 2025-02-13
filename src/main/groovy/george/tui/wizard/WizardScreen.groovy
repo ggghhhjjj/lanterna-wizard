@@ -9,8 +9,8 @@ class WizardScreen {
 
     private final WindowBasedTextGUI gui
     private final Window window
-    private DescriptionZone descriptionZone
-    private QuestionZone questionZone
+    private Description descriptionZone
+    private Question questionZone
     private final WizardButtonsZone buttonsZone
     private final Panel mainPanel
 
@@ -21,7 +21,7 @@ class WizardScreen {
     WizardScreen(String title, Screen screen) {
         this.gui = new MultiWindowTextGUI(screen)
         this.window = new BasicWindow(title)
-        this.descriptionZone = new DescriptionZone("") // Default empty description
+        this.descriptionZone = new Description("") // Default empty description
         this.questionZone = null // Default null
         this.buttonsZone = new WizardButtonsZone(gui, this)
 
@@ -51,7 +51,7 @@ class WizardScreen {
 
     /** Replaces the DescriptionZone and refreshes the UI */
     WizardScreen setDescription(String text) {
-        def newDescription = new DescriptionZone(text)
+        def newDescription = new Description(text)
         mainPanel.removeComponent(mainPanel.children[DESCRIPTION_INDEX])
 
         this.descriptionZone = newDescription
@@ -64,7 +64,7 @@ class WizardScreen {
     }
 
     /** Replaces the QuestionZone and refreshes the UI */
-    WizardScreen setQuestionZone(QuestionZone newQuestionZone) {
+    WizardScreen setQuestionZone(Question newQuestionZone) {
         mainPanel.removeComponent(mainPanel.children[QUESTION_INDEX])
 
         this.questionZone = newQuestionZone
