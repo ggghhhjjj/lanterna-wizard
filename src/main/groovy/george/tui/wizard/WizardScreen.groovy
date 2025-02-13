@@ -89,7 +89,19 @@ class WizardScreen {
     void close() {
         window.close()
     }
-    void saveData() {
+
+    /**
+     * Returns the answer for the current question from the Repository.
+     * @throws IllegalStateException if no QuestionZone is present.
+     */
+    String getQuestionAnswer() {
+        if (questionZone == null) {
+            throw new IllegalStateException("No question is set for this WizardScreen.")
+        }
+        return Repository.get(questionZone.key, "")
+    }
+
+    private void saveData() {
         if (questionZone != null) questionZone.saveAnswer()
     }
 

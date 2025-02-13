@@ -2,7 +2,6 @@ package george
 
 import com.googlecode.lanterna.screen.Screen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
-import george.tui.wizard.DescriptionZone
 import george.tui.wizard.QuestionZone
 import george.tui.wizard.WizardScreen
 import george.tui.wizard.Repository
@@ -26,9 +25,22 @@ class Main {
                 .setDescription('${name}, this is step 2.')
                 .setQuestionZone(new QuestionZone("color", "What is your favorite color?", "Blue"))
 
+        WizardScreen finalScreen = new WizardScreen("Summary", screen)
+                .setDescription('Thank you, ${name}! You like ${color}.')
+
+        // Navigation with answer retrieval
+        firstScreen.setNavigation({ welcomeScreen.show() }, {
+            println("User entered name: " + firstScreen.getQuestionAnswer())
+            secondScreen.show()
+        })
+
+        secondScreen.setNavigation({ firstScreen.show() }, {
+            println("User entered color: " + secondScreen.getQuestionAnswer())
+            finalScreen.show()
+        })
+
         welcomeScreen.setNavigation(WizardScreen.NO_NAVIGATION, { firstScreen.show() })
-        firstScreen.setNavigation({ welcomeScreen.show() }, { secondScreen.show() })
-        secondScreen.setNavigation({ firstScreen.show() }) // No Next → Shows Finish button
+        finalScreen.setNavigation({ secondScreen.show() }) // Only Back button
 
         welcomeScreen.show()
         screen.stopScreen()
