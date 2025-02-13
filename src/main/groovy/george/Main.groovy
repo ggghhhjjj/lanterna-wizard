@@ -4,7 +4,6 @@ import com.googlecode.lanterna.screen.Screen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import george.tui.wizard.DescriptionZone
 import george.tui.wizard.QuestionZone
-import george.tui.wizard.WizardButtonsZone
 import george.tui.wizard.WizardScreen
 
 class Main {
@@ -19,19 +18,21 @@ class Main {
         // Create the welcome WizardScreen without a QuestionZone.
         welcomeScreen = new WizardScreen(screen, "Welcome",
                 new DescriptionZone("Welcome to the Wizard!\nPress Next to continue."),
-                null,
-                new WizardButtonsZone({ -> firstScreen.show() }))
+                null)
 
         firstScreen = new WizardScreen(screen, "Step 1",
                 new DescriptionZone("Welcome to the wizard! This is step 1."),
-                new QuestionZone("name", "What is your name?", "John Doe"),  // Unique key
-                new WizardButtonsZone({ -> secondScreen.show() }, { -> welcomeScreen.show() }))
+                new QuestionZone("name", "What is your name?", "John Doe"))
 
         secondScreen = new WizardScreen(screen, "Step 2",
                 new DescriptionZone("This is step 2. Almost done!"),
-                new QuestionZone("color", "What is your favorite color?", "Blue"),  // Unique key
-                // missing onNext will display Finish button
-                new WizardButtonsZone(null, { -> firstScreen.show()}))
+                new QuestionZone("color", "What is your favorite color?", "Blue"))
+
+        welcomeScreen.addNavigation(WizardScreen.NO_NAVIGATION, { firstScreen.show() })
+
+        firstScreen.addNavigation({ welcomeScreen.show() }, { secondScreen.show() })
+
+        secondScreen.addNavigation({ firstScreen.show() })
 
         welcomeScreen.show()
     }
