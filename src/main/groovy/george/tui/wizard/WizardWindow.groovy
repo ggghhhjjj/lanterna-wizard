@@ -1,5 +1,6 @@
 package george.tui.wizard
 
+import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.screen.Screen
@@ -100,7 +101,112 @@ class WizardWindow {
         return Repository.get(questionZone.key, "")
     }
 
-    private void saveData() {
+    void saveData() {
         if (questionZone != null) questionZone.saveAnswer()
+    }
+
+    /**
+     * Displays a popup window showing real-time output from a process.
+     * @param process The external process whose output should be displayed.
+     * @param title The title of the popup window.
+     */
+    Process showProcessOutputPopup(List<String> command, String title) {
+        Process process
+
+        BasicWindow popup = new BasicWindow(title)
+        popup.setHints([Window.Hint.EXPANDED] as Set)
+
+        TextBox outputBox = new TextBox("", TextBox.Style.MULTI_LINE).with {
+            setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Fill, LinearLayout.GrowPolicy.CanGrow))
+            setReadOnly(true)
+        }
+
+        // Scrollable panel containing the output TextBox
+        Panel scrollablePanel = new Panel(new LinearLayout(Direction.VERTICAL)).with {
+            setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Fill, LinearLayout.GrowPolicy.CanGrow))
+            addComponent(outputBox)
+        }
+
+        Button closeButton = new Button("Close", {
+            if (!process.alive) {
+                popup.close()
+            } else {
+                showTerminationConfirmation(popup, process)
+            }
+        })
+
+        Panel popupPanel = new Panel(new LinearLayout(Direction.VERTICAL)).with {
+            setFillColorOverride(TextColor.ANSI.BLACK)
+            addComponent(scrollablePanel)
+            addComponent(closeButton)
+        }
+
+        popup.setComponent(popupPanel)
+        gui.addWindow(popup)
+        gui.moveToTop(popup)
+
+        process = command.execute()
+
+        BufferedReader stdoutReader = new BufferedReader(new InputStreamReader(process.inputStream, "UTF-8"))
+        BufferedReader stderrReader = new BufferedReader(new InputStreamReader(process.errorStream, "UTF-8"))
+        StringBuffer outputBuffer = new StringBuffer()
+
+        Thread stdoutThread = startOutputThread(stdoutReader, outputBuffer, outputBox)
+        Thread stderrThread = startOutputThread(stderrReader, outputBuffer, outputBox)
+
+        stdoutThread.start()
+        stderrThread.start()
+
+        stdoutThread.join()
+        stderrThread.join()
+
+        gui.addWindowAndWait(popup)
+
+        return process
+    }
+
+    private static Thread startOutputThread(stdoutReader, outputBuffer, outputBox, isErrorStream = false) {
+        Thread stdoutThread = new Thread({
+            String line
+            while ((line = stdoutReader.readLine()) != null) {
+                outputBuffer.append(isErrorStream ? "[ERROR] " : "").append(line).append("\n")
+                outputBox.setText(outputBuffer.toString())
+                outputBox.setCaretPosition(outputBox.getText().length()) // Auto-scroll
+            }
+            stdoutReader.close()
+        })
+
+        return stdoutThread
+    }
+
+    /**
+     * Displays a confirmation dialog when the process is still running.
+     * If the user chooses OK, the process is terminated and the popup closes.
+     * If the user chooses Cancel, the alert closes but the process keeps running.
+     */
+    private void showTerminationConfirmation(Window popup, Process process) {
+        BasicWindow alertWindow = new BasicWindow("Process Running")
+
+        Panel alertPanel = new Panel(new LinearLayout(Direction.VERTICAL))
+        alertPanel.addComponent(new Label("The process is still running. Do you want to terminate it?"))
+
+        Panel buttonPanel = new Panel(new LinearLayout(Direction.HORIZONTAL))
+
+        Button okButton = new Button("OK", {
+            process.destroy()
+            popup.close()
+            alertWindow.close()
+        })
+
+        Button cancelButton = new Button("Cancel", { alertWindow.close() })
+
+        buttonPanel.addComponent(okButton)
+        buttonPanel.addComponent(cancelButton)
+
+        alertPanel.addComponent(buttonPanel)
+        alertWindow.setComponent(alertPanel)
+        alertWindow.setHints([Window.Hint.CENTERED] as Set)
+
+        gui.addWindow(alertWindow)
     }
 }

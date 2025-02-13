@@ -28,6 +28,12 @@ class Main {
         WizardWindow finalScreen = new WizardWindow("Summary", screen)
                 .setDescription('Thank you, ${name}! You like ${color}.')
 
+
+        WizardWindow processScreen = new WizardWindow("Process Output", screen)
+                .setDescription("Click 'Next' to execute a command and view its output.")
+
+        welcomeScreen.setNavigation(WizardWindow.NO_NAVIGATION, { firstScreen.show() })
+
         // Navigation with answer retrieval
         firstScreen.setNavigation({ welcomeScreen.show() }, {
             println("User entered name: " + firstScreen.getQuestionAnswer())
@@ -36,11 +42,17 @@ class Main {
 
         secondScreen.setNavigation({ firstScreen.show() }, {
             println("User entered color: " + secondScreen.getQuestionAnswer())
+            processScreen.show()
+        })
+
+        processScreen.setNavigation({secondScreen.show()}, {
+            String os = System.getProperty("os.name").toLowerCase()
+            def command = os.contains("win") ? ["dir"] : ["ls", "-lah"]
+            processScreen.showProcessOutputPopup(command, "Process Output")
             finalScreen.show()
         })
 
-        welcomeScreen.setNavigation(WizardWindow.NO_NAVIGATION, { firstScreen.show() })
-        finalScreen.setNavigation({ secondScreen.show() }) // Only Back button
+        finalScreen.setNavigation({ processScreen.show() })
 
         welcomeScreen.show()
         screen.stopScreen()
