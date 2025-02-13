@@ -9,70 +9,93 @@ class WizardScreen {
 
     private final WindowBasedTextGUI gui
     private final Window window
-    private final QuestionZone questionZone
-    private WizardButtonsZone buttonsZone
+    private DescriptionZone descriptionZone
+    private QuestionZone questionZone
+    private final WizardButtonsZone buttonsZone
+    private final Panel mainPanel
 
-    WizardScreen(Screen screen, String title, DescriptionZone description, QuestionZone questionZone = null) {
+    private static final int DESCRIPTION_INDEX = 0
+    private static final int QUESTION_INDEX = 1
+    private static final int BUTTONS_INDEX = 2
+
+    WizardScreen(String title, Screen screen) {
         this.gui = new MultiWindowTextGUI(screen)
         this.window = new BasicWindow(title)
-        this.questionZone = questionZone
-        this.buttonsZone = new WizardButtonsZone(gui, this) // Default buttonsZone
+        this.descriptionZone = new DescriptionZone("") // Default empty description
+        this.questionZone = null // Default null
+        this.buttonsZone = new WizardButtonsZone(gui, this)
 
         window.setHints([Window.Hint.EXPANDED] as Set)
 
-        Panel panel = new Panel(new LinearLayout(Direction.VERTICAL))
-        panel.setFillColorOverride(TextColor.ANSI.BLUE)
+        // Initialize main panel
+        this.mainPanel = new Panel(new LinearLayout(Direction.VERTICAL))
+        this.mainPanel.setFillColorOverride(TextColor.ANSI.BLUE)
 
-        // Description Component
-        Component descriptionComponent = description.build()
+        // Add description zone
+        Component descriptionComponent = descriptionZone.build()
         descriptionComponent.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Fill, LinearLayout.GrowPolicy.CanGrow))
-        panel.addComponent(descriptionComponent)
+        this.mainPanel.addComponent(descriptionComponent)
 
-        // Conditionally add QuestionZone
-        if (questionZone != null) {
-            Component questionComponent = questionZone.build()
-            questionComponent.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Fill, LinearLayout.GrowPolicy.None))
-            panel.addComponent(questionComponent)
-        }
+        // Add placeholder for QuestionZone
+        Component questionComponent = new EmptySpace()
+        questionComponent.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Fill, LinearLayout.GrowPolicy.None))
+        this.mainPanel.addComponent(questionComponent)
 
         // Add buttons
         Component buttonsComponent = buttonsZone.build()
         buttonsComponent.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Fill, LinearLayout.GrowPolicy.None))
-        panel.addComponent(buttonsComponent)
+        this.mainPanel.addComponent(buttonsComponent)
 
-        window.setComponent(panel)
+        window.setComponent(mainPanel)
     }
 
-    /**
-     * Adds a Next button callback and updates the WizardButtonsZone.*/
-    WizardScreen addNavigation(Closure onBack, Closure onNext = NO_NAVIGATION) {
-        this.buttonsZone.addNavigation(onBack, onNext)
+    /** Replaces the DescriptionZone and refreshes the UI */
+    WizardScreen setDescription(String text) {
+        def newDescription = new DescriptionZone(text)
+        mainPanel.removeComponent(mainPanel.children[DESCRIPTION_INDEX])
+
+        this.descriptionZone = newDescription
+        Component newComponent = newDescription.build()
+        newComponent.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Fill, LinearLayout.GrowPolicy.CanGrow))
+        mainPanel.addComponent(DESCRIPTION_INDEX, newComponent)
+
+        gui.updateScreen()
         return this
     }
 
-    /**
-     * Adds a Back button callback and updates the WizardButtonsZone.*/
-    WizardScreen onBack(Closure callback) {
-        this.buttonsZone.onBack = callback
+    /** Replaces the QuestionZone and refreshes the UI */
+    WizardScreen setQuestionZone(QuestionZone newQuestionZone) {
+        mainPanel.removeComponent(mainPanel.children[QUESTION_INDEX])
+
+        this.questionZone = newQuestionZone
+        Component newComponent = (newQuestionZone != null) ? newQuestionZone.build() : new EmptySpace()
+        newComponent.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Fill, LinearLayout.GrowPolicy.None))
+        mainPanel.addComponent(QUESTION_INDEX, newComponent)
+
+        gui.updateScreen()
+        return this
+    }
+
+    /** Updates the navigation buttons */
+    WizardScreen setNavigation(Closure onBack, Closure onNext = NO_NAVIGATION) {
+        buttonsZone.setNavigation(onBack, onNext)
+        gui.updateScreen()
         return this
     }
 
     void show() {
         gui.addWindowAndWait(window)
     }
-
     void close() {
         window.close()
     }
-
     void saveData() {
-        if (questionZone != null) {
-            questionZone.saveAnswer()
-        }
+        if (questionZone != null) questionZone.saveAnswer()
     }
 
     /**
-     * Private inner class for handling wizard buttons.*/
+     * Private inner class for managing wizard navigation buttons.
+     */
     private static class WizardButtonsZone {
         private static final int BACK_BUTTON_NDX = 1
         private static final int NEXT_BUTTON_NDX = 2
@@ -104,7 +127,7 @@ class WizardScreen {
             System.exit(0)
         }
 
-        void addNavigation(Closure onBack, Closure onNext = NO_NAVIGATION) {
+        void setNavigation(Closure onBack, Closure onNext = NO_NAVIGATION) {
             this.onBack = onBack ?: NO_NAVIGATION
             this.onNext = onNext ?: NO_NAVIGATION
 

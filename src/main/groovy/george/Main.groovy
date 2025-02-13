@@ -11,29 +11,22 @@ class Main {
         Screen screen = new DefaultTerminalFactory().createScreen()
         screen.startScreen()
 
-        WizardScreen welcomeScreen
-        WizardScreen firstScreen
-        WizardScreen secondScreen
+        WizardScreen welcomeScreen = new WizardScreen("Welcome", screen)
+                .setDescription("Welcome to the Wizard!\nPress Next to continue.")
 
-        // Create the welcome WizardScreen without a QuestionZone.
-        welcomeScreen = new WizardScreen(screen, "Welcome",
-                new DescriptionZone("Welcome to the Wizard!\nPress Next to continue."),
-                null)
+        WizardScreen firstScreen = new WizardScreen("Step 1", screen)
+                .setDescription("This is step 1.")
+                .setQuestionZone(new QuestionZone("name", "What is your name?", "John Doe"))
 
-        firstScreen = new WizardScreen(screen, "Step 1",
-                new DescriptionZone("Welcome to the wizard! This is step 1."),
-                new QuestionZone("name", "What is your name?", "John Doe"))
+        WizardScreen secondScreen = new WizardScreen("Step 2", screen)
+                .setDescription("This is step 2.")
+                .setQuestionZone(new QuestionZone("color", "What is your favorite color?", "Blue"))
 
-        secondScreen = new WizardScreen(screen, "Step 2",
-                new DescriptionZone("This is step 2. Almost done!"),
-                new QuestionZone("color", "What is your favorite color?", "Blue"))
-
-        welcomeScreen.addNavigation(WizardScreen.NO_NAVIGATION, { firstScreen.show() })
-
-        firstScreen.addNavigation({ welcomeScreen.show() }, { secondScreen.show() })
-
-        secondScreen.addNavigation({ firstScreen.show() })
+        welcomeScreen.setNavigation(WizardScreen.NO_NAVIGATION, { firstScreen.show() })
+        firstScreen.setNavigation({ welcomeScreen.show() }, { secondScreen.show() })
+        secondScreen.setNavigation({ firstScreen.show() }) // No Next → Shows Finish button
 
         welcomeScreen.show()
+        screen.stopScreen()
     }
 }
