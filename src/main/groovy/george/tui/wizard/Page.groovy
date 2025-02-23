@@ -4,6 +4,8 @@ import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.screen.Screen
 
+import java.nio.charset.StandardCharsets
+
 /**
  * Represents a page in the wizard, consisting of a title, description, question area,
  * and navigation buttons. Each page is managed within a Lanterna-based Text User Interface (TUI).*/
@@ -60,22 +62,26 @@ class Page {
     }
 
     /**
-     * Updates the description section of the page.
+     * Updates the description section of the page with a provided text.
      *
      * @param text The new description text.
      * @return The updated {@link Page} instance.
      */
     Page withDescription(String text) {
-        def newDescription = new Description(text)
-        mainPanel.removeComponent(mainPanel.children[DESCRIPTION_INDEX])
-
-        this.description = newDescription
-        Component newComponent = newDescription.build()
-        newComponent.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Fill, LinearLayout.GrowPolicy.CanGrow))
-        mainPanel.addComponent(DESCRIPTION_INDEX, newComponent)
-
-        gui.updateScreen()
+        updateDescription(new Description(text))
         return this
+    }
+
+    /**
+     * Updates the description section of the page with text loaded from a file in the classpath.
+     *
+     * @param filePath The path to the text file in the classpath.
+     * @return The updated {@link Page} instance.
+     * @throws IllegalArgumentException If the file cannot be found or read.
+     */
+    Page withDescriptionFromFile(String filePath) {
+        String fileContent = loadTextFromClasspath(filePath)
+        return withDescription(fileContent)
     }
 
     /**
@@ -244,5 +250,47 @@ class Page {
         alertWindow.setHints([Window.Hint.CENTERED] as Set)
 
         gui.addWindow(alertWindow)
+    }
+
+
+    /**
+     * Replaces the current description with a new one and updates the UI.
+     *
+     * @param newDescription The new description component.
+     */
+    private void updateDescription(Description newDescription) {
+        mainPanel.removeComponent(mainPanel.children[DESCRIPTION_INDEX])
+
+        this.description = newDescription
+        Component newComponent = newDescription.build()
+        newComponent.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Fill, LinearLayout.GrowPolicy.CanGrow))
+        mainPanel.addComponent(DESCRIPTION_INDEX, newComponent)
+
+        gui.updateScreen()
+    }
+
+    /**
+     * Loads the content of a text file from the classpath.
+     *
+     * @param filePath The relative path of the file inside the classpath.
+     * @return The content of the file as a string.
+     * @throws IllegalArgumentException If the file cannot be found or read.
+     */
+    private static String loadTextFromClasspath(String filePath) {
+        InputStream inputStream = Page.class.getClassLoader().getResourceAsStream(filePath)
+        if (inputStream == null) {
+            throw new IllegalArgumentException("File not found in classpath: " + filePath)
+        }
+
+        try {
+            return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8)
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Failed to read file: " + filePath, e)
+        } finally {
+            try {
+                inputStream.close()
+            } catch (IOException ignored) {
+            }
+        }
     }
 }

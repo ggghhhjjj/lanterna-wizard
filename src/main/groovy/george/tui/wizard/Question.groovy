@@ -7,8 +7,8 @@ import com.googlecode.lanterna.gui2.*
  * Displays a question with an input field.
  * The question text is shown above the input TextBox.*/
 class Question {
-    private final String question
-    private final String key
+    final String question
+    final String key
     private final TextBox inputField
 
     /**

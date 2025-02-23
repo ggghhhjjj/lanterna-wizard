@@ -14,7 +14,7 @@ class Main {
         Repository.set("username", "Guest")
 
         Page welcomeScreen = wizard.addPage("Welcome")
-                .withDescription('Welcome, ${username}!\nPress Next to continue.')
+                .withDescriptionFromFile("welcome.txt")
 
         Page firstScreen = wizard.addPage("Step 1")
                 .withDescription('Hello ${username}, this is step 1. Your name is ${name}')

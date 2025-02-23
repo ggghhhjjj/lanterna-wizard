@@ -1,0 +1,3 @@
+Welcome, ${username}!
+This is a multi-line welcome message loaded from a file.
+Press Next to continue.
