@@ -16,12 +16,12 @@ class Navigation {
     private static final Closure EMPTY_CLOSURE = {}
 
     private final WindowBasedTextGUI gui
-    private final WizardWindow currentScreen
+    private final Page currentScreen
     private Closure onNext = EMPTY_CLOSURE
     private Closure onBack = EMPTY_CLOSURE
     private Panel panel
 
-    Navigation(WindowBasedTextGUI gui, WizardWindow currentScreen) {
+    Navigation(WindowBasedTextGUI gui, Page currentScreen) {
         this.gui = gui
         this.currentScreen = currentScreen
     }
@@ -41,15 +41,15 @@ class Navigation {
         System.exit(0)
     }
 
-    void setNavigation(Closure onBack, Closure onNext = WizardWindow.NO_NAVIGATION) {
-        this.onBack = onBack ?: WizardWindow.NO_NAVIGATION
-        this.onNext = onNext ?: WizardWindow.NO_NAVIGATION
+    void setNavigation(Closure onBack, Closure onNext = Page.NO_NAVIGATION) {
+        this.onBack = onBack ?: Page.NO_NAVIGATION
+        this.onNext = onNext ?: Page.NO_NAVIGATION
 
-        if (onBack != WizardWindow.NO_NAVIGATION) {
+        if (onBack != Page.NO_NAVIGATION) {
             updateButton(BACK_BUTTON_NDX, onBack, "Back")
         }
 
-        if (onNext != WizardWindow.NO_NAVIGATION) {
+        if (onNext != Page.NO_NAVIGATION) {
             updateButton(NEXT_BUTTON_NDX, onNext, "Next")
         }
 

@@ -1,29 +1,39 @@
 package george.tui.wizard
 
-import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.screen.Screen
 
-class WizardWindow {
+/**
+ * Represents a page in the wizard, consisting of a title, description, question area,
+ * and navigation buttons. Each page is managed within a Lanterna-based Text User Interface (TUI).*/
+class Page {
+    /**
+     * Default closure for when no navigation action is provided.*/
     static final Closure NO_NAVIGATION = {}
 
     private final WindowBasedTextGUI gui
     private final Window window
-    private Description descriptionZone
-    private Question questionZone
-    private final Navigation buttonsZone
+    private Description description
+    private Question question
+    private final Navigation buttons
     private final Panel mainPanel
 
     private static final int DESCRIPTION_INDEX = 0
     private static final int QUESTION_INDEX = 1
 
-    WizardWindow(String title, Screen screen) {
+    /**
+     * Constructs a new wizard page with a title and a screen.
+     *
+     * @param title The title of the page.
+     * @param screen The screen on which the page will be displayed.
+     */
+    Page(String title, Screen screen) {
         this.gui = new MultiWindowTextGUI(screen)
         this.window = new BasicWindow(title)
-        this.descriptionZone = new Description("") // Default empty description
-        this.questionZone = null // Default null
-        this.buttonsZone = new Navigation(gui, this)
+        this.description = new Description("") // Default empty description
+        this.question = null // Default null
+        this.buttons = new Navigation(gui, this)
 
         window.setHints([Window.Hint.EXPANDED] as Set)
 
@@ -32,7 +42,7 @@ class WizardWindow {
         this.mainPanel.setFillColorOverride(TextColor.ANSI.BLUE)
 
         // Add description zone
-        Component descriptionComponent = descriptionZone.build()
+        Component descriptionComponent = description.build()
         descriptionComponent.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Fill, LinearLayout.GrowPolicy.CanGrow))
         this.mainPanel.addComponent(descriptionComponent)
 
@@ -42,19 +52,24 @@ class WizardWindow {
         this.mainPanel.addComponent(questionComponent)
 
         // Add buttons
-        Component buttonsComponent = buttonsZone.build()
+        Component buttonsComponent = buttons.build()
         buttonsComponent.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Fill, LinearLayout.GrowPolicy.None))
         this.mainPanel.addComponent(buttonsComponent)
 
         window.setComponent(mainPanel)
     }
 
-    /** Replaces the DescriptionZone and refreshes the UI */
-    WizardWindow setDescription(String text) {
+    /**
+     * Updates the description section of the page.
+     *
+     * @param text The new description text.
+     * @return The updated {@link Page} instance.
+     */
+    Page withDescription(String text) {
         def newDescription = new Description(text)
         mainPanel.removeComponent(mainPanel.children[DESCRIPTION_INDEX])
 
-        this.descriptionZone = newDescription
+        this.description = newDescription
         Component newComponent = newDescription.build()
         newComponent.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Fill, LinearLayout.GrowPolicy.CanGrow))
         mainPanel.addComponent(DESCRIPTION_INDEX, newComponent)
@@ -63,11 +78,16 @@ class WizardWindow {
         return this
     }
 
-    /** Replaces the QuestionZone and refreshes the UI */
-    WizardWindow setQuestionZone(Question newQuestionZone) {
+    /**
+     * Sets a new question on the page.
+     *
+     * @param newQuestionZone The new question component.
+     * @return The updated {@link Page} instance.
+     */
+    Page withQuestion(Question newQuestionZone) {
         mainPanel.removeComponent(mainPanel.children[QUESTION_INDEX])
 
-        this.questionZone = newQuestionZone
+        this.question = newQuestionZone
         Component newComponent = (newQuestionZone != null) ? newQuestionZone.build() : new EmptySpace()
         newComponent.setLayoutData(LinearLayout.createLayoutData(LinearLayout.Alignment.Fill, LinearLayout.GrowPolicy.None))
         mainPanel.addComponent(QUESTION_INDEX, newComponent)
@@ -76,39 +96,56 @@ class WizardWindow {
         return this
     }
 
-    /** Updates the navigation buttons */
-    WizardWindow setNavigation(Closure onBack, Closure onNext = NO_NAVIGATION) {
-        buttonsZone.setNavigation(onBack, onNext)
+    /**
+     * Configures the navigation buttons for the page.
+     *
+     * @param onBack The action to execute when navigating back.
+     * @param onNext The action to execute when navigating forward (default: NO_NAVIGATION).
+     * @return The updated {@link Page} instance.
+     */
+    Page withNavigation(Closure onBack, Closure onNext = NO_NAVIGATION) {
+        buttons.setNavigation(onBack, onNext)
         gui.updateScreen()
         return this
     }
 
+    /**
+     * Displays the page on the screen.*/
     void show() {
         gui.addWindowAndWait(window)
     }
+
+    /**
+     * Closes the current page.*/
     void close() {
         window.close()
     }
 
     /**
-     * Returns the answer for the current question from the Repository.
-     * @throws IllegalStateException if no QuestionZone is present.
+     * Retrieves the answer to the current question from the repository.
+     *
+     * @return The stored answer for the current question.
+     * @throws IllegalStateException If no question is set for this page.
      */
     String getQuestionAnswer() {
-        if (questionZone == null) {
+        if (question == null) {
             throw new IllegalStateException("No question is set for this WizardScreen.")
         }
-        return Repository.get(questionZone.key, "")
-    }
-
-    void saveData() {
-        if (questionZone != null) questionZone.saveAnswer()
+        return Repository.get(question.key, "")
     }
 
     /**
-     * Displays a popup window showing real-time output from a process.
-     * @param process The external process whose output should be displayed.
+     * Saves the current question's answer to the repository.*/
+    void saveData() {
+        if (question != null) question.saveAnswer()
+    }
+
+    /**
+     * Displays a popup window that shows the real-time output of an external process.
+     *
+     * @param command The command to execute.
      * @param title The title of the popup window.
+     * @return The process instance.
      */
     Process showProcessOutputPopup(List<String> command, String title) {
         Process process
@@ -165,8 +202,17 @@ class WizardWindow {
         return process
     }
 
+    /**
+     * Creates a thread to capture the output from a process stream.
+     *
+     * @param stdoutReader The reader for the process output.
+     * @param outputBuffer A buffer to store the output text.
+     * @param outputBox The UI component displaying the output.
+     * @param isErrorStream Whether the stream is an error stream.
+     * @return The created thread.
+     */
     private static Thread startOutputThread(stdoutReader, outputBuffer, outputBox, isErrorStream = false) {
-        Thread stdoutThread = new Thread({
+        return new Thread({
             String line
             while ((line = stdoutReader.readLine()) != null) {
                 outputBuffer.append(isErrorStream ? "[ERROR] " : "").append(line).append("\n")
@@ -175,14 +221,13 @@ class WizardWindow {
             }
             stdoutReader.close()
         })
-
-        return stdoutThread
     }
 
     /**
-     * Displays a confirmation dialog when the process is still running.
-     * If the user chooses OK, the process is terminated and the popup closes.
-     * If the user chooses Cancel, the alert closes but the process keeps running.
+     * Displays a confirmation dialog when attempting to close a running process.
+     *
+     * @param popup The popup window associated with the process.
+     * @param process The running process.
      */
     private void showTerminationConfirmation(Window popup, Process process) {
         BasicWindow alertWindow = new BasicWindow("Process Running")
@@ -191,17 +236,8 @@ class WizardWindow {
         alertPanel.addComponent(new Label("The process is still running. Do you want to terminate it?"))
 
         Panel buttonPanel = new Panel(new LinearLayout(Direction.HORIZONTAL))
-
-        Button okButton = new Button("OK", {
-            process.destroy()
-            popup.close()
-            alertWindow.close()
-        })
-
-        Button cancelButton = new Button("Cancel", { alertWindow.close() })
-
-        buttonPanel.addComponent(okButton)
-        buttonPanel.addComponent(cancelButton)
+        buttonPanel.addComponent(new Button("OK", { process.destroy(); popup.close(); alertWindow.close() }))
+        buttonPanel.addComponent(new Button("Cancel", { alertWindow.close() }))
 
         alertPanel.addComponent(buttonPanel)
         alertWindow.setComponent(alertPanel)
